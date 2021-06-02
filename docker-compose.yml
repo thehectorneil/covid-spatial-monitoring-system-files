@@ -1,0 +1,48 @@
+version: "3.8"
+services: 
+  
+    mongo:
+        container_name: mongo
+        image: mongo:3.6.19-xenial
+        ports:
+            - "27017:27017"
+        networks: 
+            - mevn-app
+        environment: 
+            - TZ=Asia/Singapore
+        volumes:
+            - mongo-data:/data/db
+
+    api-server:
+        container_name: api-server
+        image: hcornea/covid-spatial-monitoring_api-server:latest
+        ports: 
+            - "3000:3000"
+        networks: 
+            - mevn-app
+        environment: 
+            - TZ=Asia/Singapore
+        command: ["npm", "start"]
+        depends_on: 
+            - mongo
+
+    vue-app:
+        container_name: vue-frontend
+        image: hcornea/covid-spatial-monitoring_vue-app:latest
+        restart: always
+        stdin_open: true
+        networks: 
+            - mevn-app        
+        environment: 
+            - TZ=Asia/Singapore
+        ports:
+            - "8080:8080"
+        depends_on: 
+            - api-server
+          
+networks:
+    mevn-app:
+        driver: bridge
+volumes:
+    mongo-data:
+        driver: local
